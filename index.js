@@ -1,6 +1,6 @@
-const { Bot } = require("discord.js");
+const { Client } = require("discord.js");
 
-class Client extends Bot {
+class BotClient extends Client {
     constructor() {
         super();
 
@@ -13,7 +13,7 @@ class Client extends Bot {
         this.config = require("./config.json");
     }
 
-    attatchCommands() {
+    attachCommands() {
         this.fs.readdir("./commands", (e, files) => {
             if (e) return console.log(`Error whilst reading command dir: \n${e}`);
             if (!files) return console.log("Didn't find any files in the ./commands dir.");
@@ -71,12 +71,12 @@ class Client extends Bot {
     
     // Called in ./process.js
     async start() {
-        this.attatchCommands();
-        this.attatchListeners();
-        this.attatchTimers();
-        this.login(this.config.token);
+        this.attachCommands();
+        this.attachListeners();
+        this.attachTimers();
+        this.login(this.config.client_info.token);
     }
 }
 
 
-module.exports = Client;
+module.exports = BotClient;

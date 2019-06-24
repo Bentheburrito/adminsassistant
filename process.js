@@ -1,6 +1,6 @@
 // The entry point of the bot.
-const Client = require("./index.js");
-const bot = new Client();
+const BotClient = require("./index.js");
+const bot = new BotClient();
 bot.start();
 
 // Handle rejections:
@@ -9,7 +9,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 process.on('uncaughtException', async(err) => {
-    await console.error(err, 'Uncaught Exception thrown.'); 
+    console.error(err, 'Uncaught Exception thrown.'); 
 
     // pm2 automatically restarts the process so the bot shouldn't go offline.
     process.exit(1); 
