@@ -1,12 +1,16 @@
 module.exports = (client, message) => {
-	
-	// Handle commands:
-	if (!message.content.startsWith('!')) return;
-	var commandName = message.content.split(' ')[0];
-	var args = message.content.split(' ').shift();
+	// "prefixes": ["!", "<@592512269301186565>", "<@!592512269301186565>"],
+	const prefixes = client.config.prefixes;
+	let prefix = false;
 
-	var command = client.commands.get(commandName);
+	for (const p of prefixes) if (message.content.startsWith(p)) prefix = p;
+
+	if (!prefix) return;
+	let args = message.content.slice(prefix.length).trim().split(/ +/g);
+	let commandName = args.shift().toLowerCase();
+
+	let command = client.commands.get(commandName);
 	if (!command) return;
+	
 	command.run(client, message, args);
 }
-
