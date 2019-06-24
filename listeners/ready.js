@@ -1,4 +1,4 @@
-exports.run = (client) => {
+module.exports = (client) => {
     console.log(`Successfully logged in as ${client.user.tag}, serving ${client.guilds.size} guilds!`);
     client.user.setActivity("Now Online", { type: "PLAYING"} );
 
