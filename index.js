@@ -38,12 +38,12 @@ class Client extends Bot {
 			files.forEach((listener) => {
 				if (!listener.endsWith(".js")) return;
 				
-				let name = listener.split(".js")[0];
+                let name = listener.split(".js")[0];
                 let path = require(`./listeners/${listener}`);
                 
                 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
 				console.log(`Registering listener ${name}.`);
-				this.on(name, path.bind(null, this));
+                this.on(name, path.bind(null, this));
 			}); 
 		});
     }
