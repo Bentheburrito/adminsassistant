@@ -22,10 +22,12 @@ class BotClient extends Client {
                 if (!command.endsWith(".js")) return;
 
                 let name = command.split(".js")[0];
-                let path = require(`./commands/${command}`);
+				let path = require(`./commands/${command}`);
+				let aliases = path.aliases;
 
-                this.commands.set(name, path);
-                console.log(`Successfully attached command ${name}.`);
+				this.commands.set(name, path);
+				if (aliases) for (var a of aliases) this.commands.set(a, path);
+                console.log(`Successfully attached command ${name}${aliases ? ` with aliases: (${aliases.join(', ')})` : ''}.`);
             });
         });
     }
