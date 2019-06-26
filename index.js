@@ -1,4 +1,5 @@
 const { Client } = require("discord.js");
+const mysql = require('mysql2/promise');
 
 class BotClient extends Client {
     constructor() {
@@ -69,13 +70,33 @@ class BotClient extends Client {
                 console.log(`Registering timer: ${name} to be periodicially ran every ${path.time / 1000} seconds.`);
             });
         });
-    }
+	}
+	
+	async connectToDB () {
+
+		this.con = await mysql.createConnection({
+			host: this.config.host,
+			user: this.config.user,
+			password: this.config.password,
+			database: this.config.database,
+			connectionLimit: 4,
+			charset: 'utf8mb4'
+		});
+		if (!this.con) return console.log(`Couldn't connect to db`);
+		console.log('Connected to Database.');
+
+		this.con.on('error', e => {
+			console.log('DATABASE ERROR:');
+			console.log(e);
+		});
+	}
     
     // Called in ./process.js
     async start() {
         this.attachCommands();
         this.attachListeners();
-        this.attachTimers();
+		this.attachTimers();
+		this.connectToDB();
         this.login(this.config.client_info.token);
     }
 }

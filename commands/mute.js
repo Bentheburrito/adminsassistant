@@ -33,7 +33,9 @@ exports.run = async (client, message, args) => {
 	
 	let uotMultiplier = 1000; // Defaults to seconds.
 
-	if (uot.startsWith('mo')) {
+	if (!uot || uot.startsWith('s')) {
+		uot = 'seconds';
+	} else if (uot.startsWith('mo')) {
 		uot = 'months';
 		uotMultiplier = 2592000000;
 	} else if (uot.startsWith('d')) {
@@ -45,14 +47,14 @@ exports.run = async (client, message, args) => {
 	} else if (uot.startsWith('m')) {
 		uot = 'minutes';
 		uotMultiplier = 60000;
-	} else uot = 'seconds';
-
-	// Store mute info in DB.
+	}
 
 	if (member.roles.some(r => r.name === 'Muted')) {
+		await client.con.execute(`DELETE FROM mutedUsers WHERE id = "${member.id}" AND guild_id = "${message.guild.id}";`);
 		await member.removeRole(muteRole).catch(console.log);
 		message.channel.send(`Unmuted ${member.user.username}`);
 	} else {
+		await client.con.execute(`INSERT INTO mutedUsers VALUES ("${member.id}", "${message.guild.id}", ${Date.now() + time * uotMultiplier});`);
 		await member.addRole(muteRole).catch(console.log)
 		message.channel.send(`Muted ${member.user.username} for ${time} ${uot}`);
 	}	
