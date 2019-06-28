@@ -27,7 +27,7 @@ class BotClient extends Client {
 				let aliases = path.aliases;
 
 				this.commands.set(name, path);
-				if (aliases) for (var a of aliases) this.commands.set(a, path);
+				if (aliases) for (var a of aliases) if (this.commands.get(a)) return console.log(`Error: alias ${a} has already been registered.`); else this.commands.set(a, path);
                 console.log(`Successfully attached command ${name}${aliases ? ` with aliases: (${aliases.join(', ')})` : ''}.`);
             });
         });

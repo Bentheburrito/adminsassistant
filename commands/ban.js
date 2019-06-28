@@ -20,7 +20,7 @@ exports.run = async (client, message, args) => {
 	}
 
 	if (member.hasPermission('ADMINISTRATOR')) return message.channel.send(`I can't ban fellow admins!`);
-	if (message.guild.member(client.user).highestRole.comparePositionTo(member.highestRole) < 1) return message.channel.send(`Can't ban a user whose highest role is is above the bot's highest role. (You can fix this by moving the "Admin's Assistant" role above other member roles in Server Settings -> Roles).`);
+	if (message.guild.member(client.user).highestRole.comparePositionTo(member.highestRole) < 1) return message.channel.send(`Can't ban a user whose highest role is above the bot's highest role. (You can fix this by moving the "Admin's Assistant" role above other member roles in Server Settings -> Roles).`);
 
 	await client.con.execute(`INSERT INTO bannedUsers VALUES ("${member.id}", "${message.guild.id}", NULL);`);
 	await member.ban({days: daysToDelete, reason})
