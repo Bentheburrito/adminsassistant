@@ -28,7 +28,8 @@ exports.run = async (client, message, args) => {
 			color: '#3f3f3f',
 			permissions: []
 		});
-		for (var channel of message.guild.channels) {
+
+		for (const channel of message.guild.channels) {
 			channel.overwritePermissions(muteRole, {
 				SEND_MESSAGES: false
 			});
