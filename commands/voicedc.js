@@ -14,7 +14,7 @@ exports.run = async(client, message, args) => {
         await member.setVoiceChannel(null);
         message.channel.send("✅ Successfully disconnected the user.");
     } catch(err) {
-        message.channel.send("There was an error whilst disconnecting the user.");
+        message.channel.send("❌ There was an error whilst disconnecting the user.");
         console.error(err);
     }
 }
