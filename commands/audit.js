@@ -76,14 +76,15 @@ exports.run = async (client, message, args) => {
 
 	if (!message.member.hasPermission('ADMINISTRATOR')) return message.channel.send(`You can't use that command.`);
 
-	let username = args[0];
+	let username_or_id = args[0];
 	let numOfResults = args[1];
 
-	if (!username) return message.channel.send('Please provide the name of a user.');
+	if (!username_or_id) return message.channel.send('Please provide (the id of) the user');
 	if (!numOfResults) numOfResults = 10;
 
-	let member = message.guild.members.find(m => m.user.username.toLowerCase().includes(username.toLowerCase()));
-	if (!member) return message.channel.send(`Didn't find anybody with username '${username}'`);
+	let member = message.guild.members.find(m => m.user.username.toLowerCase().includes(username_or_id.toLowerCase()));
+	if (!member) member = await message.guild.fetchMember(username_or_id).catch(console.error);
+	if (!member) return message.channel.send(`Didn't find anybody with username '${username_or_id}'`);
 
 	let logs = await message.guild.fetchAuditLogs({
 		user: member,
@@ -102,9 +103,22 @@ exports.run = async (client, message, args) => {
 		let datePT = entry.createdAt.toLocaleDateString({ timezone: 'America/Tijuana' });
 		let timePT = entry.createdAt.toLocaleTimeString({ timezone: 'America/Tijuana' });
 		let timestamp = 0;
-		if (key === max_age) timestamp = parseInt(newChange);
-		if (timestamp > 60) timestamp /= 60;
+		let timestampUnit = 'seconds';
 
+		if (key == 'max_age') timestamp = parseInt(newChange);
+		if (timestamp > 60) {
+			timestamp /= 60;
+			timestampUnit = 'minutes';
+		}
+		if (timestamp > 60) {
+			timestamp /= 60;
+			timestampUnit = 'hours';
+		}
+		if (timestamp > 24) {
+			timestamp /= 24;
+			timestampUnit = 'days';
+		}
+		
 		description += `\n\n**${actionMap[entry.action]}**
 		${keyTexts !== 'NA' ? `${entry.executor.username} **${keyTexts[0]} ${['WEBHOOK', 'INVITE', 'MESSAGE'].some(t => t === entry.targetType) ? '' : entry.targetType === 'USER' ? entry.target.username : entry.target.name}${keyTexts[1]}**${oldChange ? ` from ${oldChange}` : ''}${newChange ? key === '$add' || key === '$remove' ? ` ${newChange[0].name}` : ` to ${newChange}` : ''}\n${datePT} at ${timePT} PT` : ''}`;
 	});
