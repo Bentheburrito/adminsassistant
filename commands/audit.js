@@ -1,34 +1,81 @@
 const actionMap = {
     ALL: null,
-    GUILD_UPDATE: "updated the server",
-    CHANNEL_CREATE: "created a channel",
-    CHANNEL_UPDATE: "updated a channel",
-    CHANNEL_DELETE: "deleted a channel",
-    CHANNEL_OVERWRITE_CREATE: "created a channel overwrite",
-    CHANNEL_OVERWRITE_UPDATE: "updated a channel overwrite",
-    CHANNEL_OVERWRITE_DELETE: "deleted a channel overwrite",
-    MEMBER_KICK: "kicked a member",
-    MEMBER_PRUNE: "pruned members",
-    MEMBER_BAN_ADD: "banned a member",
-    MEMBER_BAN_REMOVE: "unbanned a member",
-    MEMBER_UPDATE: "updated a member",
-    MEMBER_ROLE_UPDATE: "updated a member's role(s)",
-    ROLE_CREATE: "created a role",
-    ROLE_UPDATE: "updated a role",
-    ROLE_DELETE: "deleted a role",
-    INVITE_CREATE: "created a server invite",
-    INVITE_UPDATE: "updated a server invite",
-    INVITE_DELETE: "deleted a server invite",
-    WEBHOOK_CREATE: "created a webhook",
-    WEBHOOK_UPDATE: "updated a webhook",
-    WEBHOOK_DELETE: "deleted a webhook",
-    EMOJI_CREATE: "created an emoji",
-    EMOJI_UPDATE: "updated an emoji",
-    EMOJI_DELETE: "deleted an emoji",
-    MESSAGE_DELETE: "deleted a message",
+    GUILD_UPDATE: "Server Update:",
+    CHANNEL_CREATE: "Channel Created:",
+    CHANNEL_UPDATE: "Channel Updated",
+    CHANNEL_DELETE: "Channel Deleted",
+    CHANNEL_OVERWRITE_CREATE: "Channel Permission Overwrite Created:",
+    CHANNEL_OVERWRITE_UPDATE: "Channel Permission Overwrite Updated:",
+    CHANNEL_OVERWRITE_DELETE: "Channel Permission Overwrite Deleted:",
+    MEMBER_KICK: "Member Kicked",
+    MEMBER_PRUNE: "Members Pruned",
+    MEMBER_BAN_ADD: "Member Banned",
+    MEMBER_BAN_REMOVE: "Member Unbanned",
+    MEMBER_UPDATE: "Member Updated",
+    MEMBER_ROLE_UPDATE: "Member Roles Updated",
+    ROLE_CREATE: "Role Created",
+    ROLE_UPDATE: "Role Update",
+    ROLE_DELETE: "Role Deleted",
+    INVITE_CREATE: "Invite Created",
+    INVITE_UPDATE: "Invite Updated",
+    INVITE_DELETE: "Invite Deleted",
+    WEBHOOK_CREATE: "Webhook Created",
+    WEBHOOK_UPDATE: "Webhook Updated",
+    WEBHOOK_DELETE: "Webhook Deleted",
+    EMOJI_CREATE: "Emoji Created",
+    EMOJI_UPDATE: "Emoji Updated",
+    EMOJI_DELETE: "Emoji Deleted",
+    MESSAGE_DELETE: "Message Deleted",
+}
+const keyMap = {
+	name: ['changed', ' server name'],
+	icon_hash: ['changed', ' server icon'],
+	splash_hash: ['changed', ' invite splash artwork'],
+	owner_id: ['', ' transfered server ownership'],
+	region: ['changed', ' server region'],
+	afk_channel_id: ['changed', '\'s afk channel'],
+	afk_timeout: ['changed', ' afk timeout'],
+	mfa_level: ['changed', ' 2fa requirements'],
+	verification_level: ['changed', '\'s required verification level'],
+	explicit_content_filter: ['changed', '\'s explicit content filter'],
+	default_message_notifications: ['changed', ' server default notification settings'],
+	vanity_url_code: ['changed', ' server invite vanity url'],
+	$add: ['added a role to', ':'],
+	$remove: ['removed a role from', ':'],
+	prune_delete_days: ['changed', ' the number of days when inactive and un-roled members are kicked'],
+	widget_enabled: ['changed', ' server widget'],
+	widget_channel_id: ['changed', ' server widget channel id'],
+	position: ['changed', ' the position of a channel'],
+	topic: ['changed', ' channel description'],
+	bitrate: ['changed', ' voice channel bitrate'],
+	permission_overwrites: ['changed', ' channel permissions'],
+	nsfw: ['changed', ' nsfw channel restriction'],
+	application_id: 'NA',
+	permissions: ['changed', ' role permissions'],
+	color: ['changed', ' role color'],
+	hoist: ['changed', ' role hoist'],
+	mentionable: ['changed', '\'s mentionability'],
+	allow: ['gave', ' permissions in a channel'],
+	deny: ['removed', '\'s permissions in a channel'],
+	code: ['changed', ' code'],
+	channel_id: ['changed', ' channel id'],
+	inviter_id: 'NA',
+	max_uses: ['changed', ' the number of times an invite link can be used'],
+	uses: 'NA',
+	max_age: ['changed', ' how long an invite link lasts'],
+	temporary: ['changed', ' an invite links expiration'],
+	deaf: ['server deafened', ''],
+	mute: ['server muted', ''],
+	nick: ['changed', '\'s nickname'],
+	avatar_hash: ['changed', '\'s avatar'],
+	id: 'NA',
+	type: 'NA'
 }
 
 exports.run = async (client, message, args) => {
+
+	if (!message.member.hasPermission('ADMINISTRATOR')) return message.channel.send(`You can't use that command.`);
+
 	let username = args[0];
 	let numOfResults = args[1];
 
@@ -42,9 +89,28 @@ exports.run = async (client, message, args) => {
 		user: member,
 		limit: numOfResults
 	});
-	console.log(logs.entries.get('593514172558606358'));
+	// console.log(logs.entries);
+	// console.log(logs.entries.first().changes[0])
+
+	let description = '';
+	logs.entries.tap(entry => {
+		console.log(entry)
+		let key = entry.changes[0].key;
+		let keyTexts = keyMap[key];
+		let oldChange = entry.changes[0].old;
+		let newChange = entry.changes[0].new;
+		let datePT = entry.createdAt.toLocaleDateString({ timezone: 'America/Tijuana' });
+		let timePT = entry.createdAt.toLocaleTimeString({ timezone: 'America/Tijuana' });
+		let timestamp = 0;
+		if (key === max_age) timestamp = parseInt(newChange);
+		if (timestamp > 60) timestamp /= 60;
+
+		description += `\n\n**${actionMap[entry.action]}**
+		${keyTexts !== 'NA' ? `${entry.executor.username} **${keyTexts[0]} ${['WEBHOOK', 'INVITE', 'MESSAGE'].some(t => t === entry.targetType) ? '' : entry.targetType === 'USER' ? entry.target.username : entry.target.name}${keyTexts[1]}**${oldChange ? ` from ${oldChange}` : ''}${newChange ? key === '$add' || key === '$remove' ? ` ${newChange[0].name}` : ` to ${newChange}` : ''}\n${datePT} at ${timePT} PT` : ''}`;
+	});
+
 	let embed = new client.djs.RichEmbed()
 		.setTitle(`Audit logs by ${member.displayName}`)
-		.setDescription(logs.entries.map(entry => `${entry.executor} **${actionMap[entry.action]}**`).join('\n\n'));
+		.setDescription(description);
 	message.channel.send('', embed);
 }

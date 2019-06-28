@@ -1,5 +1,8 @@
 exports.aliases = ['unban'];
 exports.run = async (client, message, args) => {
+
+	if (!message.member.hasPermission('ADMINISTRATOR')) return message.channel.send(`You can't use that command.`);
+
 	let username = args[0];
 	let daysToDelete = args[1];
 	let reason = args.slice(2).join(' ');
