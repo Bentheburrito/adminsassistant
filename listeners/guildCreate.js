@@ -22,10 +22,11 @@ module.exports = async(client, guild) => {
         console.log(`Successfully created Muted role in ${guild.name}.`);
     }
 
-    const channel = guild.channels.find((c) => c.name.toLowerCase() == "logs");
+    let channel = guild.channels.find((c) => c.name.toLowerCase() == "logs");
+    if (!channel) channel = this.logChannels.get(guild.id);
     
     if (!channel) {
-        await guild.createChannel("logs", {
+        let newChannel = await guild.createChannel("logs", {
             type: "text",
             permissionOverwrites: [{
                 id: guild.id,
@@ -33,6 +34,7 @@ module.exports = async(client, guild) => {
             }]
         });
 
+        this.logChannels.set(guild.id, newChannel);
         console.log(`Successfully setup a logs channel in ${guild.name}.`);
     }
 }

@@ -1,13 +1,14 @@
 const { Client } = require("discord.js");
-const mysql = require('mysql2/promise');
 
 class BotClient extends Client {
     constructor() {
         super();
 
-        // Can add more if needed later e.g mysql, request? 
+        // Can add more if needed later e.g mysql, request?, keyv 
         this.djs = require("discord.js");
         this.fs = require("fs");
+        this.mysql = require("mysql2/promise");
+        this.keyv = require("keyv");
 
         this.commands = new this.djs.Collection();
         this.timers = new this.djs.Collection();
@@ -72,16 +73,16 @@ class BotClient extends Client {
         });
 	}
 	
-	async connectToDB () {
-
-		this.con = await mysql.createConnection({
+	async connectToDB() {
+		this.con = await this.mysql.createConnection({
 			host: this.config.host,
 			user: this.config.user,
 			password: this.config.password,
 			database: this.config.database,
 			connectionLimit: 4,
 			charset: 'utf8mb4'
-		});
+        });
+        
 		if (!this.con) return console.log(`Couldn't connect to db`);
 		console.log('Connected to Database.');
 
@@ -91,6 +92,13 @@ class BotClient extends Client {
 		});
 	}
     
+    async configureKeyv() {
+        this.logChannels = new this.keyv(this.config.mysql_path);
+        // Can add more dynamic features if you have any ideas.
+        
+        this.keyv.on('error', (e) => console.error('Keyv connection error:', e));
+    }
+
     // Called in ./process.js
     async start() {
         this.attachCommands();
