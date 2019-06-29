@@ -8,11 +8,14 @@ class BotClient extends Client {
         this.djs = require("discord.js");
         this.fs = require("fs");
         this.mysql = require("mysql2/promise");
-        this.keyv = require("keyv");
+        // this.keyv = require("keyv");
 
         this.commands = new this.djs.Collection();
-        this.timers = new this.djs.Collection();
-        this.config = require("./config.json");
+		this.timers = new this.djs.Collection();
+		this.adjustedRoles = new this.djs.Collection();
+		this.config = require("./config.json");
+
+		this.lockedGuilds = [];
     }
 
     attachCommands() {
@@ -92,12 +95,12 @@ class BotClient extends Client {
 		});
 	}
     
-    async configureKeyv() {
-        this.logChannels = new this.keyv(this.config.mysql_path);
-        // Can add more dynamic features if you have any ideas.
+    // async configureKeyv() {
+    //     this.logChannels = new this.keyv(this.config.mysql_path);
+    //     // Can add more dynamic features if you have any ideas.
         
-        this.keyv.on('error', (e) => console.error('Keyv connection error:', e));
-    }
+    //     this.keyv.on('error', (e) => console.error('Keyv connection error:', e));
+    // }
 
     // Called in ./process.js
     async start() {

@@ -28,7 +28,7 @@ const actionMap = {
     MESSAGE_DELETE: "Message Deleted",
 }
 const keyMap = {
-	name: ['changed', ' server name'],
+	name: ['changed', '\'s name'],
 	icon_hash: ['changed', ' server icon'],
 	splash_hash: ['changed', ' invite splash artwork'],
 	owner_id: ['', ' transfered server ownership'],
@@ -55,8 +55,8 @@ const keyMap = {
 	color: ['changed', ' role color'],
 	hoist: ['changed', ' role hoist'],
 	mentionable: ['changed', '\'s mentionability'],
-	allow: ['gave', ' permissions in a channel'],
-	deny: ['removed', '\'s permissions in a channel'],
+	allow: ['added permissions to ', ' for '],
+	deny: ['removed permissions from ', ' for '],
 	code: ['changed', ' code'],
 	channel_id: ['changed', ' channel id'],
 	inviter_id: 'NA',
@@ -69,9 +69,14 @@ const keyMap = {
 	nick: ['changed', '\'s nickname'],
 	avatar_hash: ['changed', '\'s avatar'],
 	id: 'NA',
-	type: 'NA'
+	type: 'NA',
+
+	ban: ['banned', ''],
+	unban: ['unbanned', ''],
+	kick: ['kicked', '']
 }
 
+exports.aliases = ['a', 'aud']
 exports.run = async (client, message, args) => {
 
 	if (!message.member.hasPermission('ADMINISTRATOR')) return message.channel.send(`You can't use that command.`);
@@ -95,7 +100,12 @@ exports.run = async (client, message, args) => {
 
 	let description = '';
 	logs.entries.tap(entry => {
-		console.log(entry)
+
+		if (!entry.changes) {
+
+			entry.changes = [{key: entry.action === 'MEMBER_BAN_ADD' ? 'ban' : entry.action === 'MEMBER_BAN_REMOVE' ? 'unban' : entry.action === 'MEMBER_KICK' ? 'kick' : 'id', old: message.guild.name, new: undefined}]
+		}
+		// console.log(entry)
 		let key = entry.changes[0].key;
 		let keyTexts = keyMap[key];
 		let oldChange = entry.changes[0].old;
@@ -104,23 +114,27 @@ exports.run = async (client, message, args) => {
 		let timePT = entry.createdAt.toLocaleTimeString({ timezone: 'America/Tijuana' });
 		let timestamp = 0;
 		let timestampUnit = 'seconds';
-
-		if (key == 'max_age') timestamp = parseInt(newChange);
-		if (timestamp > 60) {
-			timestamp /= 60;
-			timestampUnit = 'minutes';
-		}
-		if (timestamp > 60) {
-			timestamp /= 60;
-			timestampUnit = 'hours';
-		}
-		if (timestamp > 24) {
-			timestamp /= 24;
-			timestampUnit = 'days';
-		}
 		
+		if (key == 'max_age') {
+			timestamp = parseInt(newChange);
+			if (timestamp >= 60) {
+				timestamp /= 60;
+				timestampUnit = 'minutes';
+			}
+			if (timestamp >= 60) {
+				timestamp /= 60;
+				timestampUnit = 'hours';
+			}
+			if (timestamp >= 24) {
+				timestamp /= 24;
+				timestampUnit = 'days';
+			}
+			newChange = timestamp + ' ' + timestampUnit;
+		}
+		// console.log(entry.action)
+		// I know this is the worst thing one could create, but I'm on a deadline here!
 		description += `\n\n**${actionMap[entry.action]}**
-		${keyTexts !== 'NA' ? `${entry.executor.username} **${keyTexts[0]} ${['WEBHOOK', 'INVITE', 'MESSAGE'].some(t => t === entry.targetType) ? '' : entry.targetType === 'USER' ? entry.target.username : entry.target.name}${keyTexts[1]}**${oldChange ? ` from ${oldChange}` : ''}${newChange ? key === '$add' || key === '$remove' ? ` ${newChange[0].name}` : ` to ${newChange}` : ''}\n${datePT} at ${timePT} PT` : ''}`;
+			${keyTexts !== 'NA' ? `${entry.executor.username} **${entry.action.includes('CHANNEL_DELETE') ? `deleted '${oldChange}'` : entry.action.includes('CHANNEL_CREATE') ? `created '${newChange}'` : `${keyTexts[0]} ${['WEBHOOK', 'INVITE', 'MESSAGE'].some(t => t === entry.targetType) ? '' : entry.targetType === 'USER' ? entry.target.username : entry.target.name}${keyTexts[1]}${entry.extra ? entry.extra.name : oldChange ? ` from ${oldChange}` : ''}${entry.extra ? '' : newChange ? key === '$add' || key === '$remove' ? ` ${newChange[0].name}` : ` to ${newChange}` : ''}`}**\n${datePT} at ${timePT} PT` : ''}`;
 	});
 
 	let embed = new client.djs.RichEmbed()

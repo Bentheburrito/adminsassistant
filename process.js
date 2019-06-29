@@ -5,7 +5,8 @@ bot.start();
 
 // Handle rejections:
 process.on("unhandledRejection", (reason, promise) => {
-    console.log(`Unhandled rejection at: ${promise}, reason: ${reason}.`)
+	console.log(`Unhandled rejection, reason: ${reason}.`)
+	console.log(promise)
 });
 
 process.on('uncaughtException', async(err) => {
